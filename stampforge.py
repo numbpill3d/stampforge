@@ -143,8 +143,11 @@ class StampForge(QMainWindow):
         self.refresh_file_folders()
 
         settings_tab = QWidget(); form = QFormLayout(settings_tab)
+        self.w_spin = QSpinBox(); self.w_spin.setRange(1, 188); self.w_spin.valueChanged.connect(self.resize_layer)
+        self.h_spin = QSpinBox(); self.h_spin.setRange(1, 100); self.h_spin.valueChanged.connect(self.resize_layer)
         self.x_spin = QSpinBox(); self.x_spin.setRange(-94, 94); self.x_spin.valueChanged.connect(self.change_position)
         self.y_spin = QSpinBox(); self.y_spin.setRange(-50, 50); self.y_spin.valueChanged.connect(self.change_position)
+        form.addRow("width", self.w_spin); form.addRow("height", self.h_spin)
         form.addRow("x", self.x_spin); form.addRow("y", self.y_spin)
         self.loop = QCheckBox("loop animated frames"); self.loop.setChecked(True); form.addRow(self.loop)
         form.addRow(QLabel("export size is always 94 × 50 px"))
@@ -191,6 +194,7 @@ class StampForge(QMainWindow):
     def _layer_selected(self, row):
         if 0 <= row < len(self.layers):
             layer = self.layers[row]; self.vis.blockSignals(True); self.vis.setChecked(layer.visible); self.vis.blockSignals(False)
+            self.w_spin.blockSignals(True); self.h_spin.blockSignals(True); self.w_spin.setValue(layer.frames[0].width if layer.frames else W); self.h_spin.setValue(layer.frames[0].height if layer.frames else H); self.w_spin.blockSignals(False); self.h_spin.blockSignals(False)
             self.x_spin.blockSignals(True); self.y_spin.blockSignals(True); self.x_spin.setValue(layer.x); self.y_spin.setValue(layer.y); self.x_spin.blockSignals(False); self.y_spin.blockSignals(False)
 
     def toggle_layer(self, state):
@@ -200,6 +204,16 @@ class StampForge(QMainWindow):
     def change_position(self):
         row = self.layer_list.currentRow()
         if 0 <= row < len(self.layers): self._record(); self.layers[row].x, self.layers[row].y = self.x_spin.value(), self.y_spin.value(); self._render()
+
+    def resize_layer(self):
+        row = self.layer_list.currentRow()
+        if not (0 <= row < len(self.layers)): return
+        width, height = self.w_spin.value(), self.h_spin.value()
+        layer = self.layers[row]
+        if layer.frames and layer.frames[0].size == (width, height): return
+        self._record()
+        layer.frames = [frame.resize((width, height), Image.Resampling.NEAREST) for frame in layer.frames]
+        self._render()
 
     def move_layer(self, delta):
         row = self.layer_list.currentRow(); new = row + delta

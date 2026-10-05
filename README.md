@@ -18,7 +18,7 @@ StampForge is a tiny System 7-inspired desktop editor for making 94×50 pixel we
 
 ## Controls
 
-Double-click any thumbnail to add it as a layer. Use the layer arrows to change stacking order and the `x` / `y` controls to nudge the selected layer.
+Double-click any thumbnail to add it as a layer. Use the layer arrows to change stacking order and the `width`, `height`, `x`, and `y` controls in the Stamp tab to resize and move the selected layer around the 94×50 canvas.
 
 `Ctrl+Z` undoes the last edit. `Ctrl+R` redoes it. The **crop to selected template** button uses the template's transparent edge as the final stamp shape.
 
