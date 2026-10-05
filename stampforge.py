@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
 from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QAction, QColor, QImage, QPixmap, QIcon
 from PySide6.QtWidgets import (
@@ -229,10 +229,17 @@ class StampForge(QMainWindow):
             return
         path = item.data(Qt.UserRole)
         try:
-            template = Image.open(path).convert("RGBA")
-            template.thumbnail((W, H), Image.Resampling.LANCZOS)
-            mask = Image.new("L", (W, H), 0)
-            mask.paste(template.getchannel("A"), ((W-template.width)//2, (H-template.height)//2))
+            template = Image.open(path).convert("RGBA").resize((W, H), Image.Resampling.LANCZOS)
+            alpha = template.getchannel("A")
+            if alpha.getextrema() == (255, 255):
+                # Some old web-stamp templates are opaque. Treat the corner
+                # color as paper so their lateral edges can still become a mask.
+                corner = Image.new("RGBA", (W, H), template.getpixel((0, 0)))
+                diff = ImageChops.difference(template, corner).convert("L")
+                mask = diff.point(lambda value: 255 if value > 12 else 0)
+                if mask.getextrema() == (0, 0): mask = alpha
+            else:
+                mask = alpha
             count = max([len(l.frames) for l in self.layers] or [1])
             self._record()
             frames = []
