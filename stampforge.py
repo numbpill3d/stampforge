@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
-from PySide6.QtCore import Qt, QSize, QTimer
+from PySide6.QtCore import Qt, QSize, QTimer, QPoint
 from PySide6.QtGui import QAction, QColor, QImage, QPixmap, QIcon
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QColorDialog, QFileDialog, QFormLayout, QGroupBox,
@@ -43,6 +43,55 @@ class Layer:
     x: int = 0
     y: int = 0
     visible: bool = True
+
+
+class PreviewLabel(QLabel):
+    """Pixel canvas that supports drag-to-move and corner resize."""
+    def __init__(self, owner):
+        super().__init__()
+        self.owner = owner
+        self.setAlignment(Qt.AlignCenter)
+        self.setMouseTracking(True)
+        self.mode = None
+        self.start = None
+
+    def _canvas_point(self, point):
+        pixmap = self.pixmap()
+        if pixmap is None or pixmap.isNull(): return None
+        origin = QPoint((self.width() - pixmap.width()) // 2, (self.height() - pixmap.height()) // 2)
+        x = (point.x() - origin.x()) / max(1, self.owner.preview_scale)
+        y = (point.y() - origin.y()) / max(1, self.owner.preview_scale)
+        if x < 0 or y < 0 or x > W or y > H: return None
+        return x, y
+
+    def mousePressEvent(self, event):
+        if event.button() != Qt.LeftButton: return
+        point = self._canvas_point(event.position().toPoint())
+        row = self.owner.layer_list.currentRow()
+        if point is None or not (0 <= row < len(self.owner.layers)): return
+        layer = self.owner.layers[row]
+        width = layer.frames[0].width if layer.frames else W; height = layer.frames[0].height if layer.frames else H
+        x, y = point
+        corner = abs(x - (layer.x + width)) < 5 and abs(y - (layer.y + height)) < 5
+        inside = layer.x <= x <= layer.x + width and layer.y <= y <= layer.y + height
+        if corner: self.mode = "resize"
+        elif inside: self.mode = "move"
+        else: return
+        self.start = (x, y, layer.x, layer.y, width, height)
+        self.owner._record()
+        self.setCursor(Qt.SizeFDiagCursor if self.mode == "resize" else Qt.ClosedHandCursor)
+
+    def mouseMoveEvent(self, event):
+        if not self.mode or not self.start: return
+        point = self._canvas_point(event.position().toPoint())
+        if point is None: return
+        sx, sy, x, y, width, height = self.start; dx, dy = point[0] - sx, point[1] - sy
+        if self.mode == "move": self.owner._set_geometry(x + round(dx), y + round(dy), width, height)
+        else: self.owner._set_geometry(x, y, max(1, width + round(dx)), max(1, height + round(dy)))
+
+    def mouseReleaseEvent(self, event):
+        if self.mode:
+            self.mode = None; self.start = None; self.unsetCursor()
 
 
 def font(size: int = 10):
@@ -105,13 +154,13 @@ class StampForge(QMainWindow):
         body = QWidget(); outer.addWidget(body, 1)
         body_layout = QHBoxLayout(body); body_layout.setContentsMargins(4, 0, 4, 0); body_layout.setSpacing(12)
         left = QVBoxLayout(); body_layout.addLayout(left, 1)
-        self.preview = QLabel(); self.preview.setAlignment(Qt.AlignCenter); self.preview.setMinimumSize(360, 260); self.preview.setObjectName("preview")
+        self.preview = PreviewLabel(self); self.preview.setMinimumSize(360, 260); self.preview.setObjectName("preview")
         left.addWidget(self.preview, 1)
         controls = QHBoxLayout()
         for text, fn in [("import layer", self.import_image), ("add text", self.add_text), ("background", self.pick_bg)]:
             b = QPushButton(text); b.clicked.connect(fn); controls.addWidget(b)
         controls.addStretch(); left.addLayout(controls)
-        self.frame_label = QLabel("94 × 50 px  •  frame 1/1  •  live preview")
+        self.frame_label = QLabel("94 × 50 px  •  frame 1/1  •  drag inside to move  •  drag corner to resize")
         left.addWidget(self.frame_label)
 
         tabs = QTabWidget(); tabs.setFixedWidth(280); body_layout.addWidget(tabs)
@@ -203,7 +252,7 @@ class StampForge(QMainWindow):
 
     def change_position(self):
         row = self.layer_list.currentRow()
-        if 0 <= row < len(self.layers): self._record(); self.layers[row].x, self.layers[row].y = self.x_spin.value(), self.y_spin.value(); self._render()
+        if 0 <= row < len(self.layers): self._record(); self._set_geometry(self.x_spin.value(), self.y_spin.value(), self.layers[row].frames[0].width, self.layers[row].frames[0].height)
 
     def resize_layer(self):
         row = self.layer_list.currentRow()
@@ -212,7 +261,17 @@ class StampForge(QMainWindow):
         layer = self.layers[row]
         if layer.frames and layer.frames[0].size == (width, height): return
         self._record()
-        layer.frames = [frame.resize((width, height), Image.Resampling.NEAREST) for frame in layer.frames]
+        self._set_geometry(layer.x, layer.y, width, height)
+
+    def _set_geometry(self, x, y, width, height):
+        row = self.layer_list.currentRow()
+        if not (0 <= row < len(self.layers)): return
+        layer = self.layers[row]
+        if layer.frames and layer.frames[0].size != (width, height): layer.frames = [frame.resize((width, height), Image.Resampling.NEAREST) for frame in layer.frames]
+        layer.x, layer.y = int(x), int(y)
+        self.x_spin.blockSignals(True); self.y_spin.blockSignals(True); self.w_spin.blockSignals(True); self.h_spin.blockSignals(True)
+        self.x_spin.setValue(layer.x); self.y_spin.setValue(layer.y); self.w_spin.setValue(width); self.h_spin.setValue(height)
+        self.x_spin.blockSignals(False); self.y_spin.blockSignals(False); self.w_spin.blockSignals(False); self.h_spin.blockSignals(False)
         self._render()
 
     def move_layer(self, delta):
