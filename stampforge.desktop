@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=StampForge
+Comment=94x50 retro web stamp editor
+Exec=/usr/bin/python /home/scorn/stampforge/stampforge.py
+TryExec=/usr/bin/python
+Icon=/home/scorn/stampforge/stampforge.svg
+Terminal=false
+Type=Application
+NoDisplay=false
+Categories=Graphics;
