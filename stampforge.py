@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -231,15 +232,27 @@ class StampForge(QMainWindow):
         try:
             template = Image.open(path).convert("RGBA").resize((W, H), Image.Resampling.LANCZOS)
             alpha = template.getchannel("A")
-            if alpha.getextrema() == (255, 255):
-                # Some old web-stamp templates are opaque. Treat the corner
-                # color as paper so their lateral edges can still become a mask.
-                corner = Image.new("RGBA", (W, H), template.getpixel((0, 0)))
-                diff = ImageChops.difference(template, corner).convert("L")
-                mask = diff.point(lambda value: 255 if value > 12 else 0)
-                if mask.getextrema() == (0, 0): mask = alpha
-            else:
-                mask = alpha
+            # Remove paper-colored margins connected to the outside edge. This
+            # handles the common stamp-template pattern: a red/black frame,
+            # white paper in the middle, and extra white gutters at left/right.
+            pix = template.load(); base_alpha = alpha.load(); mask = Image.new("L", (W, H), 255); mask_pix = mask.load()
+            corners = [pix[0, 0][:3], pix[W-1, 0][:3], pix[0, H-1][:3], pix[W-1, H-1][:3]]
+            bg = max(set(corners), key=corners.count)
+            def is_outer_paper(x, y):
+                r, g, b, _ = pix[x, y]
+                return base_alpha[x, y] > 0 and max(abs(r-bg[0]), abs(g-bg[1]), abs(b-bg[2])) < 32
+            queue = deque()
+            seen = set()
+            for x in range(W): queue.extend([(x, 0), (x, H-1)])
+            for y in range(H): queue.extend([(0, y), (W-1, y)])
+            while queue:
+                x, y = queue.popleft()
+                if (x, y) in seen or not (0 <= x < W and 0 <= y < H) or not is_outer_paper(x, y): continue
+                seen.add((x, y)); mask_pix[x, y] = 0
+                queue.extend(((x+1, y), (x-1, y), (x, y+1), (x, y-1)))
+            # If the template has no detectable paper at its perimeter, retain
+            # its original alpha instead of making the whole stamp invisible.
+            if len(seen) < 4: mask = alpha
             count = max([len(l.frames) for l in self.layers] or [1])
             self._record()
             frames = []
