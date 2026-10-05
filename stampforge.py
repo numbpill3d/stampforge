@@ -95,8 +95,15 @@ class StampForge(QMainWindow):
 
     def _build_ui(self):
         root = QWidget(); self.setCentralWidget(root)
-        outer = QHBoxLayout(root); outer.setContentsMargins(12, 12, 12, 12); outer.setSpacing(12)
-        left = QVBoxLayout(); outer.addLayout(left, 1)
+        outer = QVBoxLayout(root); outer.setContentsMargins(8, 8, 8, 8); outer.setSpacing(8)
+        titlebar = QWidget(); titlebar.setObjectName("mac-titlebar"); titlebar.setFixedHeight(27)
+        title_row = QHBoxLayout(titlebar); title_row.setContentsMargins(7, 2, 7, 2)
+        close_box = QLabel("■"); close_box.setObjectName("mac-close"); title_row.addWidget(close_box)
+        title_row.addStretch(); title_row.addWidget(QLabel("StampForge")); title_row.addStretch(); title_row.addWidget(QLabel("94 × 50"))
+        outer.addWidget(titlebar)
+        body = QWidget(); outer.addWidget(body, 1)
+        body_layout = QHBoxLayout(body); body_layout.setContentsMargins(4, 0, 4, 0); body_layout.setSpacing(12)
+        left = QVBoxLayout(); body_layout.addLayout(left, 1)
         self.preview = QLabel(); self.preview.setAlignment(Qt.AlignCenter); self.preview.setMinimumSize(360, 260); self.preview.setObjectName("preview")
         left.addWidget(self.preview, 1)
         controls = QHBoxLayout()
@@ -106,7 +113,7 @@ class StampForge(QMainWindow):
         self.frame_label = QLabel("94 × 50 px  •  frame 1/1  •  live preview")
         left.addWidget(self.frame_label)
 
-        tabs = QTabWidget(); tabs.setFixedWidth(280); outer.addWidget(tabs)
+        tabs = QTabWidget(); tabs.setFixedWidth(280); body_layout.addWidget(tabs)
         layers_tab = QWidget(); layers_layout = QVBoxLayout(layers_tab)
         self.layer_list = QListWidget(); self.layer_list.currentRowChanged.connect(self._layer_selected); layers_layout.addWidget(self.layer_list)
         row = QHBoxLayout()
@@ -369,6 +376,9 @@ def main():
       QGroupBox { border:1px solid #111; margin-top:10px; padding-top:8px; }
       QGroupBox::title { subcontrol-origin:margin; left:8px; padding:0 3px; background:#bdbdbd; }
       QStatusBar { background:#d7d7d7; border-top:1px solid #111; }
+      #mac-titlebar { background:#d7d7d7; border:1px solid #111; border-top-color:#fff; border-left-color:#fff; }
+      #mac-titlebar QLabel { background:transparent; font-weight:bold; }
+      #mac-titlebar #mac-close { border:1px solid #111; padding:0 2px; font-size:8px; }
       #preview { background:#2b2b2b; border:2px solid #111; }
     """)
     win = StampForge(); win.show(); sys.exit(app.exec())
