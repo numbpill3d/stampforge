@@ -334,6 +334,9 @@ class StampForge(QMainWindow):
                 image.putalpha(Image.composite(image.getchannel("A"), Image.new("L", (W, H), 0), mask))
                 frames.append(image)
             self.layers = [Layer("cropped: " + Path(path).name, "mask", frames)]
+            # The crop mask defines the final stamp silhouette. Keep the
+            # canvas transparent so later previews and exports retain it.
+            self.bg = (0, 0, 0, 0)
             self.layer_list.clear(); self.layer_list.addItem(self.layers[0].name); self.layer_list.setCurrentRow(0); self._render()
         except Exception as exc:
             QMessageBox.warning(self, "crop failed", str(exc))
