@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=StampForge
-Comment=94x50 retro web stamp editor
+Comment=Retro web stamp, 88x31 button and blinkie editor
 Exec=/usr/bin/python /home/scorn/stampforge/stampforge.py
 TryExec=/usr/bin/python
 Icon=/home/scorn/stampforge/stampforge.svg
