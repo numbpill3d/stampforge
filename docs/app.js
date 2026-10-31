@@ -4,7 +4,7 @@ const formats = {
   button32: { label: "88×32 button", w: 88, h: 32 },
   blinkie: { label: "150×20 blinkie", w: 150, h: 20 },
 };
-const patterns = ["solid", "gradient →", "gradient ↓", "stripes", "checker", "grid", "diagonal", "plaid", "noise", "polka", "sunburst", "halftone", "glitter", "stars"];
+const patterns = ["solid", "gradient →", "gradient ↓", "stripes", "checker", "scanlines", "dots", "grid", "diagonal", "plaid", "noise", "polka", "sunburst", "halftone", "glitter", "stars"];
 const borders = ["none", "solid", "double", "raised bevel", "sunken bevel", "dashed", "dotted", "postage", "inset line", "pixel corners", "shadow frame", "neon frame"];
 const presets = [
   ["Candy chrome", "gradient →", "#ff7fc8", "#fff3fb", "raised bevel", "#ff4fa8"], ["Webring blue", "stripes", "#1464c4", "#8ed7ff", "double", "#061b4a"],
@@ -31,7 +31,9 @@ function fillPattern(g, w, h, type, base, ink, tick) {
   g.fillStyle = base; g.fillRect(0, 0, w, h); if (type === "solid") return; g.fillStyle = ink;
   if (type === "gradient →" || type === "gradient ↓") { const gradient = type.endsWith("→") ? g.createLinearGradient(0, 0, w, 0) : g.createLinearGradient(0, 0, 0, h); gradient.addColorStop(0, base); gradient.addColorStop(1, ink); g.fillStyle = gradient; g.fillRect(0, 0, w, h); return; }
   if (type === "stripes" || type === "diagonal") { g.save(); if (type === "diagonal") { g.rotate(-Math.PI / 4); g.translate(-w, 0); } for (let x = -h; x < w + h; x += type === "diagonal" ? 12 : 8) g.fillRect(x + (tick % 8), 0, type === "diagonal" ? 3 : 4, h * 2); g.restore(); }
-  else if (type === "checker") for (let y = 0; y < h; y += 5) for (let x = 0; x < w; x += 5) if ((x / 5 + y / 5) % 2) g.fillRect(x, y, 5, 5);
+  else if (type === "checker") { for (let y = 0; y < h; y += 5) for (let x = 0; x < w; x += 5) if ((x / 5 + y / 5) % 2) g.fillRect(x, y, 5, 5); }
+  else if (type === "scanlines") for (let y = tick % 4; y < h; y += 4) g.fillRect(0, y, w, 1);
+  else if (type === "dots") for (let y = 2; y < h; y += 6) for (let x = 2; x < w; x += 6) g.fillRect(x, y, 1, 1);
   else if (type === "grid") { for (let x = 0; x < w; x += 8) g.fillRect(x, 0, 1, h); for (let y = 0; y < h; y += 8) g.fillRect(0, y, w, 1); }
   else if (type === "plaid") { for (let x = 0; x < w; x += 12) g.fillRect(x, 0, 2, h); for (let y = 0; y < h; y += 8) g.fillRect(0, y, w, 2); }
   else if (type === "polka") for (let y = 5; y < h + 8; y += 12) for (let x = 5; x < w + 8; x += 12) { g.beginPath(); g.arc(x, y, 2.8, 0, Math.PI * 2); g.fill(); }
