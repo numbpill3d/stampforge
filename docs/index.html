@@ -4,86 +4,42 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="StampForge — a tiny retro-web stamp, button, and blinkie maker.">
-  <title>StampForge // Web Asset Workshop</title>
+  <title>StampForge</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="wordmark">STAMPFORGE <span>// WEB ASSET WORKSHOP</span></div>
-    <a class="source-link" href="https://github.com/numbpill3d/stampforge">view source ↗</a>
-  </header>
-
-  <main class="workbench">
-    <section class="intro panel">
-      <p class="kicker">PERSONAL WEB GRAPHICS / 01</p>
-      <h1>Make something<br><em>tiny & loud.</em></h1>
-      <p class="lede">A browser edition of StampForge for stamps, 88×31 buttons, and blinkies made for webrings, shrines, guestbooks, and homepages.</p>
-      <div class="format-switcher" role="group" aria-label="Choose image format">
-        <button class="format-button is-active" data-format="stamp">STAMP <small>94×50</small></button>
-        <button class="format-button" data-format="button">BUTTON <small>88×31</small></button>
-        <button class="format-button" data-format="button32">BUTTON <small>88×32</small></button>
-        <button class="format-button" data-format="blinkie">BLINKIE <small>150×20</small></button>
-      </div>
+  <div class="app-window">
+    <nav class="menu-bar" aria-label="Application menu"><span>file</span><span>edit</span><span>help</span></nav>
+    <header class="titlebar"><span class="close-box" aria-hidden="true">■</span><strong>StampForge</strong><span id="title-size">94 × 50</span></header>
+    <section class="masthead">
+      <label for="format">making a</label>
+      <select id="format" aria-label="Choose image format"><option value="stamp">web stamp  94×50</option><option value="button">button  88×31</option><option value="button32">button  88×32</option><option value="blinkie">blinkie  150×20</option></select>
+      <span class="masthead-note">tiny graphics for personal sites, webrings &amp; shrines</span>
+      <a class="source-link" href="https://github.com/numbpill3d/stampforge">view source ↗</a>
+      <button id="export-button" class="accent">export PNG</button>
     </section>
-
-    <section class="preview-panel panel">
-      <div class="panel-heading"><span>LIVE PREVIEW</span><span id="size-readout">94 × 50 px</span></div>
-      <div class="preview-stage"><canvas id="preview" width="94" height="50" aria-label="Live graphics preview"></canvas></div>
-      <div class="preview-meta"><span id="frame-readout">STATIC FRAME</span><span>PNG EXPORT READY</span></div>
-      <button id="export-button" class="export-button">DOWNLOAD PNG ↘</button>
-    </section>
-
-    <section class="controls panel">
-      <div class="panel-heading"><span>FORGE CONTROLS</span><span class="status-light">● ONLINE</span></div>
-
-      <div class="control-section">
-        <label for="preset">STYLE PRESET <span id="preset-count"></span></label>
-        <select id="preset"></select>
-        <p id="preset-note" class="hint"></p>
-      </div>
-
-      <div class="control-grid">
-        <div class="control-section"><label for="background">BACKGROUND</label><input id="background" type="color" value="#ff7fc8"></div>
-        <div class="control-section"><label for="pattern-color">PATTERN INK</label><input id="pattern-color" type="color" value="#fff3fb"></div>
-      </div>
-
-      <div class="control-section">
-        <label for="pattern">TEXTURE</label>
-        <select id="pattern"></select>
-      </div>
-
-      <div class="control-grid">
-        <div class="control-section"><label for="border">BORDER</label><select id="border"></select></div>
-        <div class="control-section"><label for="border-color">BORDER INK</label><input id="border-color" type="color" value="#ff4fa8"></div>
-      </div>
-
-      <div class="control-section text-section">
-        <label for="caption">CAPTION <span class="optional">OPTIONAL</span></label>
-        <input id="caption" type="text" maxlength="32" placeholder="type something tiny...">
-      </div>
-      <div class="control-grid">
-        <div class="control-section"><label for="text-color">TEXT COLOR</label><input id="text-color" type="color" value="#111111"></div>
-        <div class="control-section"><label for="text-size">TEXT SIZE</label><input id="text-size" type="number" min="5" max="32" value="11"></div>
-      </div>
-      <div class="check-row"><label><input id="animate" type="checkbox" checked> animate texture</label><label><input id="glow" type="checkbox"> text glow</label></div>
-    </section>
-
-    <section class="preset-gallery panel">
-      <div class="panel-heading"><span>STYLE INDEX</span><span>CLICK TO LOAD</span></div>
-      <div id="preset-cards" class="preset-cards"></div>
-    </section>
-
-    <aside class="notes panel">
-      <p class="kicker">FIELD NOTES</p>
-      <h2>Built for the tiny web.</h2>
-      <p>Choose a format, load a preset, tweak the ink, and download an exact-size PNG. The desktop edition adds layers, GIF export, templates, and file browsing.</p>
-      <p class="tip">TIP: captions stay crisp because the preview renders at native pixel resolution before scaling up.</p>
-      <a href="https://github.com/numbpill3d/stampforge#readme">read the desktop README →</a>
-    </aside>
-  </main>
-
-  <footer>STAMPFORGE / made for personal web graphics / <span id="footer-format">94×50 stamp</span></footer>
+    <main class="workspace">
+      <section class="preview-column">
+        <div class="eyebrow">LIVE PREVIEW  /  DRAG TO PLACE</div>
+        <div class="preview-wrap"><canvas id="preview" width="94" height="50" aria-label="Live graphics preview"></canvas></div>
+        <div class="preview-actions" aria-label="Editor actions"><button type="button">import image</button><button type="button">add text</button><button type="button">add pattern</button><button type="button">background</button></div>
+        <div class="status-line"><span id="size-readout">94 × 50 px</span><span>•</span><span id="frame-readout">STATIC FRAME</span><span>•</span><span>web companion</span></div>
+      </section>
+      <aside class="tool-panel" aria-label="StampForge tools">
+        <div class="tabs" role="tablist" aria-label="Editor sections"><button class="tab is-active" type="button" role="tab" aria-selected="true">layers</button><button class="tab" type="button" role="tab" aria-selected="false">templates</button><button class="tab" type="button" role="tab" aria-selected="false">files</button><button class="tab" type="button" role="tab" aria-selected="false">canvas</button></div>
+        <div class="tab-content">
+          <section class="tab-pane layers-pane" aria-label="Layers"><p class="muted">Browser mode renders one editable canvas. Use canvas for the same quick styles as the desktop editor.</p><div class="layer-list" aria-label="Layer list"><div class="layer-row is-selected">pattern: <span id="layer-pattern">gradient →</span></div><div class="layer-row">text: <span id="layer-caption">(none)</span></div></div><div class="button-row"><button type="button">↑</button><button type="button">↓</button><button type="button">edit</button><button type="button">remove</button></div><div class="button-row"><button type="button">fit</button><button type="button">center</button><button type="button">duplicate</button></div><label class="check-label"><input type="checkbox" checked> visible</label><fieldset><legend>selected layer</legend><div class="geometry"><label>size <input id="layer-width" value="94" readonly> × <input id="layer-height" value="50" readonly></label><label>x, y <input value="0" readonly> , <input value="0" readonly></label></div></fieldset></section>
+          <section class="tab-pane" aria-label="Templates" hidden><div class="eyebrow">STARTER ART / DOUBLE-CLICK TO ADD</div><p class="muted">The desktop edition includes the full template browser. Use the style presets in canvas to generate matching starter art here.</p><a class="readme-link" href="https://github.com/numbpill3d/stampforge/tree/main/templates">browse template source ↗</a></section>
+          <section class="tab-pane" aria-label="Files" hidden><div class="eyebrow">IMAGE FOLDERS</div><p class="muted">File browsing and local imports are available in the desktop edition.</p><a class="readme-link" href="https://github.com/numbpill3d/stampforge#local-asset-folders">read about local assets ↗</a></section>
+          <section class="tab-pane styles-pane" aria-label="Canvas styles" hidden>
+            <div class="style-box"><div class="eyebrow">QUICK STYLE PRESETS</div><p class="muted">Pick a ready-made web look, then customize the controls below.</p><select id="preset" aria-label="Style preset"></select><p id="preset-note" class="muted"></p></div>
+            <div class="style-box"><div class="eyebrow">CANVAS FINISH</div><div class="form-row"><label for="background">background</label><input id="background" type="color" value="#ff7fc8"></div><div class="form-row"><label for="pattern-color">pattern ink</label><input id="pattern-color" type="color" value="#fff3fb"></div><div class="form-row"><label for="pattern">texture</label><select id="pattern"></select></div><div class="form-row"><label for="border">border</label><select id="border"></select></div><div class="form-row"><label for="border-color">border colour</label><input id="border-color" type="color" value="#ff4fa8"></div><div class="form-row"><label for="caption">caption</label><input id="caption" type="text" maxlength="32" placeholder="type something tiny..."></div><div class="form-row"><label for="text-color">text colour</label><input id="text-color" type="color" value="#111111"></div><div class="form-row"><label for="text-size">text size</label><input id="text-size" type="number" min="5" max="32" value="11"></div><div class="check-row"><label><input id="animate" type="checkbox" checked> animate texture</label><label><input id="glow" type="checkbox"> text glow</label></div></div>
+          </section>
+        </div>
+      </aside>
+    </main>
+    <footer class="app-status"><span id="footer-format">94×50 stamp</span><span>•</span><a href="https://github.com/numbpill3d/stampforge#readme">desktop README ↗</a></footer>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>
